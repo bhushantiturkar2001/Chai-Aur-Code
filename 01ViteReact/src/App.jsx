@@ -1,7 +1,10 @@
+import Alice from "./Alice"
+
+
 function App() {
  
   return (
-   <h1>React Begin - Chai Aur React Bun </h1>
+   <Alice/>
   )
 }
 
