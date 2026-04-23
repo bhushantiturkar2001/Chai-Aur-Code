@@ -7,7 +7,6 @@ function App() {
   return (
     <>
      <h1>Learn Redux With Chai Aur Code</h1>
-     <h2 className=''></h2>
      <AddToDo/>
      <Todos/>    
     </>
