@@ -1,0 +1,310 @@
+        Redux Toolkit Notes - Chai Aur Code
+
+Lecture: Redux Toolkit Complete Setup
+
+1) What is Redux Toolkit ?
+-> Modern, official way to use Redux (simplifies everything)
+-> Removes boilerplate using createSlice, configureStore
+-> Built-in support for immutability, DevTools, async logic
+-> Single store for entire app state management
+
+2) Installation
+npm install @reduxjs/toolkit
+npm install react-redux
+
+3) Folder Structure
+src/
+├── app/
+│   └── Store.js          # Configure store
+├── features/
+│   └── todo/
+│       └── todoSlice.js  # Slice with reducers & actions
+├── components/
+│   ├── AddToDo.jsx       # Dispatch actions
+│   └── Todos.jsx         # Read state with useSelector
+├── App.jsx
+└── main.jsx              # Wrap app with Provider
+
+4) Step 1: Create Store (src/app/Store.js)
+import { configureStore } from '@reduxjs/toolkit'
+import todoReducer from '../features/todo/todoSlice'
+
+export const store = configureStore({
+    reducer: {
+        todo: todoReducer  
+    }
+})
+
+Important: 
+-> configureStore() creates the central store
+-> reducer object me slice name as key (todo) aur reducer as value
+-> State structure: { todo: { todos: [...] } }
+
+5) Step 2: Create Slice (src/features/todo/todoSlice.js)
+import { createSlice, nanoid } from '@reduxjs/toolkit'
+
+const initialState = {
+    todos: [{ id: 1, text: "Hello Slice" }]
+}
+
+export const todoSlice = createSlice({
+    name: 'todo',
+    initialState,
+    reducers: {
+        addTodo: (state, action) => {
+            const todo = {
+                id: nanoid(),
+                text: action.payload
+            }
+            state.todos.push(todo)
+        },
+        removeTodo: (state, action) => {
+            state.todos = state.todos.filter((todo) => 
+                todo.id !== action.payload
+            )
+        },
+    }
+})
+
+export const { addTodo, removeTodo } = todoSlice.actions
+export default todoSlice.reducer
+
+Important Points:
+-> createSlice() automatically creates actions & reducers
+-> name: slice ka naam (state me yahi naam se access hoga)
+-> initialState: starting state value
+-> reducers: functions jo state ko update karte hai
+-> state directly mutate kar sakte ho (Immer library internally handle karti hai)
+-> nanoid() unique ID generate karta hai
+-> action.payload me data milta hai jo dispatch karte waqt pass kiya
+-> Export actions separately & reducer as default
+
+6) Step 3: Provide Store to App (src/main.jsx)
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+import { Provider } from 'react-redux'
+import { store } from './app/Store'
+
+createRoot(document.getElementById('root')).render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+)
+
+Important:
+-> Provider component se pura app ko store access milta hai
+-> store prop me apna created store pass karo
+-> Provider ke andar wrap karo pura <App />
+
+7) Step 4: Dispatch Actions (src/components/AddToDo.jsx)
+import { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { addTodo } from '../features/todo/todoSlice'
+
+function AddToDo() {
+    const [input, setInput] = useState('')
+    const dispatch = useDispatch()
+
+    const addTodoHandler = (e) => {
+        e.preventDefault()
+        dispatch(addTodo(input))
+        setInput('')
+    }
+
+    return (
+        <form onSubmit={addTodoHandler}>
+            <input 
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+            />
+            <button type="submit">Add Todo</button>
+        </form>
+    )
+}
+
+export default AddToDo
+
+Important:
+-> useDispatch() hook se dispatch function milta hai
+-> dispatch(actionName(payload)) se action trigger hota hai
+-> payload me jo data pass karo wo action.payload me milega reducer me
+
+8) Step 5: Read State (src/components/Todos.jsx)
+import { useDispatch, useSelector } from 'react-redux'
+import { removeTodo } from '../features/todo/todoSlice'
+
+function Todos() {
+    const todos = useSelector((state) => state.todo.todos)
+    const dispatch = useDispatch()
+
+    return (
+        <ul>
+            {todos.map((todo) => (
+                <li key={todo.id}>
+                    {todo.text}
+                    <button onClick={() => dispatch(removeTodo(todo.id))}>
+                        Delete
+                    </button>
+                </li>
+            ))}
+        </ul>
+    )
+}
+
+export default Todos
+
+Important:
+-> useSelector() hook se store se data read karte hai
+-> state.sliceName.property se access karo
+-> state.todo.todos (todo = slice name, todos = property)
+-> Jab bhi state change hoga component re-render hoga
+
+9) Key Concepts Summary
+
+I) Store
+-> Central place jaha sab app data (state) store hota hai
+-> configureStore() se banate hai
+-> Sirf ek store hota hai puri app me
+-> Think: "Frontend ka database"
+
+II) Slice
+-> State ka ek logical part with its own reducers
+-> createSlice() se banate hai
+-> Automatically actions aur reducer generate karta hai
+-> Think: "Feature ka complete package"
+
+III) Reducer
+-> Function jo decide karta hai state kaise change hoga
+-> Takes: (currentState, action)
+-> Returns: newState
+-> Think: "Logic jo store ko update karta hai"
+
+IV) Action
+-> Object jo batata hai kya change karna hai
+-> Automatically createSlice se generate hota hai
+-> dispatch() se trigger karte hai
+-> Think: "Command to change state"
+
+V) useSelector
+-> Hook to read data from store
+-> Component me kisi bhi state ko access kar sakte ho
+-> Think: "Store se data lao"
+-> Example: const count = useSelector((state) => state.counter.value)
+
+VI) useDispatch
+-> Hook to send action to reducer
+-> State change trigger karta hai
+-> Think: "Store ko update karne ka button"
+-> Example: dispatch(increment())
+
+10) Common Mistakes & Solutions
+
+I) Wrong selector path
+❌ const todos = useSelector((state) => state.todos)
+✅ const todos = useSelector((state) => state.todo.todos)
+
+II) Wrong Provider prop
+❌ <Provider value={store}>
+✅ <Provider store={store}>
+
+III) Wrong import in Store.js
+❌ import { todoReducer } from '../features/todo/todoSlice'
+✅ import todoReducer from '../features/todo/todoSlice'
+
+IV) Forgot to export actions
+❌ export default todoSlice.reducer (only this)
+✅ export const { addTodo, removeTodo } = todoSlice.actions
+    export default todoSlice.reducer
+
+V) Direct state mutation (without Redux Toolkit)
+❌ state.todos.push(todo) // In plain Redux this is wrong
+✅ state.todos.push(todo) // In Redux Toolkit this is correct
+    (Immer library internally handles immutability)
+
+11) Redux DevTools Setup
+
+I) CSP Warning Fix (vite.config.js)
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    headers: {
+      'Content-Security-Policy': "script-src 'self' 'unsafe-eval';"
+    }
+  }
+})
+
+Important:
+-> Redux DevTools uses eval() internally
+-> CSP warning sirf development me aata hai
+-> Production build me DevTools include nahi hota
+
+12) Flow Diagram
+
+User Action (Click Button)
+    ↓
+dispatch(addTodo(input))
+    ↓
+Action goes to Store
+    ↓
+Reducer function runs
+    ↓
+State updates
+    ↓
+useSelector detects change
+    ↓
+Component re-renders
+    ↓
+UI updates
+
+13) When to use Redux Toolkit ?
+-> Large apps with complex state
+-> State shared across many components
+-> Frequent state updates
+-> Need for time-travel debugging
+-> Team collaboration (predictable state management)
+
+14) Redux Toolkit vs Context API
+Context API:
+-> Simple state sharing
+-> Small to medium apps
+-> Less boilerplate
+-> No DevTools
+
+Redux Toolkit:
+-> Complex state management
+-> Large apps
+-> More features (middleware, DevTools)
+-> Better performance for frequent updates
+
+15) Important Points to Remember
+-> Always wrap app with <Provider store={store}>
+-> Use useSelector to READ state
+-> Use useDispatch to UPDATE state
+-> State path: state.sliceName.property
+-> Reducers me state directly mutate kar sakte ho (Immer handles it)
+-> nanoid() for unique IDs
+-> action.payload me data milta hai
+-> Export actions separately, reducer as default
+-> One store, multiple slices
+-> Slice = name + initialState + reducers
+
+16) Quick Checklist
+✅ Install @reduxjs/toolkit and react-redux
+✅ Create Store.js with configureStore()
+✅ Create slice with createSlice()
+✅ Export actions and reducer from slice
+✅ Import reducer in Store.js
+✅ Wrap App with Provider in main.jsx
+✅ Use useSelector to read state
+✅ Use useDispatch to update state
+✅ Access state as state.sliceName.property
+
+17) Useful Commands
+npm install @reduxjs/toolkit react-redux
+npm run dev
