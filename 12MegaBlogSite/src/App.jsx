@@ -1,14 +1,25 @@
-import './App.css'
+import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import "./App.css";
+import { getCurrentUser } from "./api/auth";
+import { login, logout } from "./store/authSlice";
 
 function App() {
+  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
 
-console.log(import.meta.env.VITE_API_BASE_URL);
-
-  return (
-    <>
-      <h1>Blog App</h1>
-    </>
-  )
+  useEffect(() => {
+    getCurrentUser()
+      .then((userData) => {
+        if (userData) {
+          dispatch(login(userData));
+        } else {
+          dispatch(logout());
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [])
+return !loading ? (<div className='min-h-screen flex-wrap content-between bg-gray-400'>test</div>) : null
 }
 
-export default App
+export default App;
