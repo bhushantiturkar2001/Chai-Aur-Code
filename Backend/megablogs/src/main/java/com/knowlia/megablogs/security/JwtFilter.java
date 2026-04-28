@@ -36,17 +36,34 @@ public class JwtFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
+
             String token = header.substring(7);
-            String email = jwtUtil.extractEmail(token);
 
-            User user = repo.findByEmail(email).orElse(null);
+            // ✅ validate token first
+            if (jwtUtil.validateToken(token)) {
 
-            if (user != null) {
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                email, null, new ArrayList<>());
+                String email = jwtUtil.extractEmail(token);
 
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                User user = repo.findByEmail(email).orElse(null);
+
+                if (user != null) {
+
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    email,
+                                    null,
+                                    new ArrayList<>()
+                            );
+
+                    // 🔥 VERY IMPORTANT (adds request details)
+                    auth.setDetails(
+                            new org.springframework.security.web.authentication
+                                    .WebAuthenticationDetailsSource()
+                                    .buildDetails(request)
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             }
         }
 

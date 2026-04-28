@@ -1,6 +1,7 @@
 package com.knowlia.megablogs.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,7 +34,12 @@ public class AuthController {
     }
 
     @GetMapping("/profile")
-    public String profile(Authentication auth) {
-        return "User: " + auth.getName();
+    public ResponseEntity<?> profile(Authentication auth) {
+
+        if (auth == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        return ResponseEntity.ok(auth.getName());
     }
 }
