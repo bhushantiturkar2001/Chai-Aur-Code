@@ -26,7 +26,7 @@ return !loading ? (<div className='min-h-screen flex-wrap content-between bg-gra
   <div className="w-full block">
     <Header/>
       <main>
-        Todo Content <Outlet/>
+        Todo Content Added <Outlet/>
       </main>
     <Footer/>
 
