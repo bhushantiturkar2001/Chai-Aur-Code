@@ -1,6 +1,7 @@
 package com.knowlia.megablogs.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.knowlia.megablogs.dto.LoginRequest;
@@ -18,12 +19,17 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     public String register(RegisterRequest req) {
+        if (repo.findByEmail(req.email).isPresent()) {
+            throw new RuntimeException("Email already registered");
+        }
 
         User user = new User();
         user.setName(req.name);
         user.setEmail(req.email);
-        user.setPassword(req.password); // (we will hash later)
+        user.setPassword(encoder.encode(req.password)); // hashed
 
         repo.save(user);
 
@@ -31,11 +37,10 @@ public class AuthService {
     }
 
     public String login(LoginRequest req) {
-
         User user = repo.findByEmail(req.email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!user.getPassword().equals(req.password)) {
+        if (!encoder.matches(req.password, user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 

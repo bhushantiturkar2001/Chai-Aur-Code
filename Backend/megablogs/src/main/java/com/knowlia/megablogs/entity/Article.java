@@ -18,12 +18,11 @@ public class Article {
 	@Column(name = "title", length = 300, nullable = false)
 	private String title;
 
-	@Column(name = "content", length = 500, nullable = false)
+	@Column(name = "content", columnDefinition = "TEXT", nullable = false)
 	private String content;
 
-	@Lob
-	@Column(name = "image", nullable = false)
-	private byte[] image;
+	@Column(name = "image", length = 500, nullable = false)
+	private String image;   // stores the uploaded file name returned by /api/files/upload
 
 	@Column(name = "status")
 	private String status;

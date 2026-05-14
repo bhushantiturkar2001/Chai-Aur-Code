@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.knowlia.megablogs.dto.AuthResponse;
 import com.knowlia.megablogs.dto.LoginRequest;
 import com.knowlia.megablogs.dto.RegisterRequest;
+import com.knowlia.megablogs.dto.UserProfileResponse;
+import com.knowlia.megablogs.entity.User;
+import com.knowlia.megablogs.repository.UserRepository;
 import com.knowlia.megablogs.service.AuthService;
 
 @RestController
@@ -20,6 +23,9 @@ public class AuthController {
 
     @Autowired
     private AuthService service;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/register")
     public AuthResponse register(@RequestBody RegisterRequest req) {
@@ -33,6 +39,7 @@ public class AuthController {
         return new AuthResponse(token);
     }
 
+    // GET /api/auth/profile  →  returns full user object { id, name, email }
     @GetMapping("/profile")
     public ResponseEntity<?> profile(Authentication auth) {
 
@@ -40,6 +47,17 @@ public class AuthController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
-        return ResponseEntity.ok(auth.getName());
+        String email = auth.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        return ResponseEntity.ok(
+            new UserProfileResponse(user.getId(), user.getName(), user.getEmail())
+        );
     }
 }
