@@ -1,28 +1,5 @@
 package com.knowlia.megablogs.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.*;
-import org.springframework.web.filter.CorsFilter;
-
-@Configuration
-public class CorsConfig {
-
-    @Bean
-    public CorsFilter corsFilter() {
-
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:5173"); // your frontend
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration("/**", config);
-
-        return new CorsFilter(source);
-    }
-}
+// CorsConfig removed — CORS is now configured directly inside SecurityConfig
+// via corsConfigurationSource() bean to ensure Spring Security respects it.
+// Having a separate CorsFilter bean conflicts with Spring Security's CORS handling.
